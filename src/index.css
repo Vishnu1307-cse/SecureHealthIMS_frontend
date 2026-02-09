@@ -1,29 +1,70 @@
-:root {
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #173a5e;
-  background-color: #e3a973;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply text-slate-100;
+    background-color: #050814;
+    background-image:
+      radial-gradient(800px circle at 50% -10%, rgba(34, 211, 238, 0.25), transparent 60%),
+      radial-gradient(600px circle at 80% 20%, rgba(14, 165, 233, 0.18), transparent 55%),
+      linear-gradient(180deg, rgba(7, 14, 30, 0.9), rgba(4, 6, 14, 0.95));
+    background-attachment: fixed;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer components {
+  .card {
+    @apply rounded-xl border border-slate-800/80 bg-slate-900/70 shadow-soft backdrop-blur;
+  }
+  .primary-btn {
+    @apply rounded-lg bg-primary/90 text-slate-950 px-4 py-2 font-semibold hover:bg-primary transition;
+  }
+  .ghost-btn {
+    @apply rounded-lg border border-slate-700 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-800/60 transition;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #ffffff;
+/* Make native date/time picker icons visible on dark bg */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
 }
 
-body.theme-dark {
-  background: #0f1115;
+/* Select dropdown arrow visibility */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.5rem;
 }
 
-button,
-input {
-  font-family: inherit;
+/* Dark theme for select dropdown options */
+select option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  padding: 8px 12px;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+select option:disabled {
+  color: #64748b;
 }
