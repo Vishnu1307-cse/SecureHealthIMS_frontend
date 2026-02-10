@@ -72,33 +72,35 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (formData) => {
+    const initiateRegister = async (email, password) => {
         try {
-            const response = await api.post('/auth/register', formData);
+            const response = await api.post('/auth/register/initiate', { email, password });
             return { success: true, message: response.data.message };
         } catch (error) {
-            console.error("Registration failed:", error);
-
-            let message = 'Registration failed';
-
-            if (error.response?.data?.error) {
-                const errData = error.response.data.error;
-                message = errData.message;
-
-                // If there are specific validation details, append them
-                if (errData.details && Array.isArray(errData.details) && errData.details.length > 0) {
-                    const details = errData.details.map(d => d.message || d.msg || JSON.stringify(d)).join(', ');
-                    message = `${message}: ${details}`;
-                }
-            } else if (error.response?.data?.message) {
-                message = error.response.data.message;
-            }
-
+            console.error("Initiate registration failed:", error);
             return {
                 success: false,
-                message: message
+                message: error.response?.data?.error?.message || error.response?.data?.message || 'Verification failed'
             };
         }
+    };
+
+    const verifyRegister = async (registrationData) => {
+        try {
+            const response = await api.post('/auth/register/verify', registrationData);
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            console.error("Verification failed:", error);
+            return {
+                success: false,
+                message: error.response?.data?.error?.message || error.response?.data?.message || 'Registration failed'
+            };
+        }
+    };
+
+    const register = async (formData) => {
+        // This is now deprecated in favor of initiate + verify
+        return initiateRegister(formData.email, formData.password);
     };
 
     const logout = () => {
@@ -134,7 +136,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, updateProfile, loading }}>
+        <AuthContext.Provider value={{ user, login, register, initiateRegister, verifyRegister, logout, updateProfile, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );
