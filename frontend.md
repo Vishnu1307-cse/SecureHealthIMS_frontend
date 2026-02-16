@@ -608,4 +608,5 @@ This section outlines how to safely add new features or modify existing ones usi
 This architecture keeps cross‑cutting concerns (auth, theme, API client, styling) centralized while allowing each feature page to manage its own data and UI state.
 
 <!-- frontend-doc-rev1 -->
+<!-- frontend-doc-rev2 -->
 
