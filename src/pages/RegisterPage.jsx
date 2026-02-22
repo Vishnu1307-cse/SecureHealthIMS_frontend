@@ -1,4 +1,5 @@
 import React from 'react';
+// UI note: Registration page optimized for new user onboarding.
 import RegisterForm from '../components/auth/RegisterForm';
 import Card from '../components/ui/Card';
 import Navbar from '../components/layout/Navbar';
