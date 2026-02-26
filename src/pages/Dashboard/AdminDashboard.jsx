@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // Page: Admin dashboard surface for user management and audits.
+// NOTE: Search and filtering behavior documented in frontend.md.
 import api from '../../api/axios';
 import Navbar from '../../components/layout/Navbar';
 import Tabs from '../../components/ui/Tabs';
