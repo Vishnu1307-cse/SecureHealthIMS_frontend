@@ -2,6 +2,7 @@ import React from 'react';
 // UI note: Login page layout tuned for patient portal entry.
 // TODO: Consider adding quick links for password reset here.
 // META: Additional UX ideas can be tracked in frontend.md.
+// TRACKING: Login analytics hooks, if added, should remain unobtrusive.
 import LoginForm from '../components/auth/LoginForm';
 import Card from '../components/ui/Card';
 import Navbar from '../components/layout/Navbar';
