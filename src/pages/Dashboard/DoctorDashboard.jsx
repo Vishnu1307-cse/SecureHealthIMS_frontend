@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Page: Doctor dashboard entry for clinical workflows.
 // NOTE: Appointment flows are wired through the shared api client.
 // META: Future refactor could split profile and clinical tools.
+// TRACKING: Appointment outcome metrics should be derived from backend data.
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import Navbar from '../../components/layout/Navbar';
