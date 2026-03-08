@@ -36,7 +36,7 @@ const AdminDashboard = () => {
             await api.post(`/admin/approve/${id}`);
             alert('Doctor approved successfully');
             fetchUsers(); // Refresh list
-        } catch (err) {
+        } catch {
             alert('Failed to approve doctor');
         }
     };

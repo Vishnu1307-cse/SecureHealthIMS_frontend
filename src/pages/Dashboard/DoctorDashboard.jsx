@@ -5,8 +5,8 @@ import Navbar from '../../components/layout/Navbar';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { User, Calendar, Clock, Edit2, Save, X, Phone, MapPin, Briefcase, Award, CheckCircle, AlertCircle, FileText, Search, Plus, Pill, Stethoscope, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { User, Calendar, Clock, Edit2, Save, X, Briefcase, Pill, Stethoscope, ChevronRight, Search } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const DoctorDashboard = () => {
     const { user, updateProfile } = useAuth();
@@ -55,25 +55,6 @@ const DoctorDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
-    useEffect(() => {
-        if (activeTab === 'appointments' || activeTab === 'overview') {
-            fetchAppointments();
-        }
-    }, [activeTab]);
-
-    // Search Debounce
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (searchQuery.length >= 2 && activeTab === 'patients') {
-                handleSearchPatients();
-            } else {
-                setSearchResults([]);
-            }
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchQuery]);
-
     const fetchAppointments = async () => {
         setLoadingData(true);
         try {
@@ -104,6 +85,27 @@ const DoctorDashboard = () => {
         }
         setSearching(false);
     };
+
+    useEffect(() => {
+        if (activeTab === 'appointments' || activeTab === 'overview') {
+            fetchAppointments();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
+
+    // Search Debounce
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchQuery.length >= 2 && activeTab === 'patients') {
+                handleSearchPatients();
+            } else {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, activeTab]);
 
     const handleEditChange = (e) => {
         setEditForm({ ...editForm, [e.target.name]: e.target.value });
