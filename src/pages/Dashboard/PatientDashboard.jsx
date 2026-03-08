@@ -228,11 +228,13 @@ const PatientDashboard = () => {
 
     // Check registration status on mount
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         checkRegistrationStatus();
     }, []);
 
     // Fetch consents when tab is active
     useEffect(() => {
+        /* eslint-disable react-hooks/set-state-in-effect */
         if (activeTab === 'privacy') {
             fetchConsents();
         }
@@ -243,6 +245,7 @@ const PatientDashboard = () => {
         if (activeTab === 'prescriptions') {
             fetchPrescriptions();
         }
+        /* eslint-enable react-hooks/set-state-in-effect */
     }, [activeTab]);
 
     const renderTabContent = () => {
