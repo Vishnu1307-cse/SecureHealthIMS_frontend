@@ -1,0 +1,20 @@
+# =============================================================================
+# SecureHealthIMS Frontend - Code Owners
+# =============================================================================
+# These owners will be automatically requested for review when PRs modify
+# the matching files.
+# =============================================================================
+
+# Default owner for all files
+* @avkbsurya119
+
+# CI/CD configuration
+.github/ @avkbsurya119
+
+# Security-sensitive files
+src/context/AuthContext.jsx @avkbsurya119
+src/api/ @avkbsurya119
+
+# Configuration files
+package.json @avkbsurya119
+vite.config.js @avkbsurya119
