@@ -84,7 +84,17 @@ const AuditLogs = ({ isAdmin = false }) => {
     const formatConversationalLog = (log) => {
         const role = log.details?.role ? log.details.role.charAt(0).toUpperCase() + log.details.role.slice(1) : 'Staff member';
         const name = log.user_name || 'Someone';
-        const action = log.action === 'READ' ? 'viewed' : log.action === 'CREATE' ? 'created' : log.action === 'UPDATE' ? 'updated' : log.action === 'DELETE' ? 'deleted' : log.action.toLowerCase();
+        
+        let action = 'viewed';
+        if (log.action === 'CREATE') {
+            if (log.resource === 'appointment') action = 'made an appointment for';
+            else if (log.resource.includes('prescription')) action = 'prescribed for';
+            else action = 'created';
+        } else if (log.action === 'UPDATE') {
+            action = 'updated';
+        } else if (log.action === 'DELETE') {
+            action = 'deleted';
+        }
         
         let target = 'your data';
         switch (log.resource) {
@@ -104,11 +114,11 @@ const AuditLogs = ({ isAdmin = false }) => {
                 target = 'a specific prescription of yours';
                 break;
             case 'appointment':
-                target = 'an appointment for you';
+                target = 'you';
                 break;
         }
 
-        return `${role} ${name} ${action} ${target}.`;
+        return `${role}: ${name}, ${action} ${target}.`;
     };
 
     if (loading && logs.length === 0) {

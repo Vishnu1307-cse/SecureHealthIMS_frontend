@@ -18,7 +18,10 @@ const PatientDashboard = () => {
     // Data State
     const [visits, setVisits] = useState([]);
     const [prescriptions, setPrescriptions] = useState([]);
-    const [loadingData, setLoadingData] = useState(false);
+    const [appointments, setAppointments] = useState([]);
+    const [loadingVisits, setLoadingVisits] = useState(false);
+    const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+    const [loadingAppointments, setLoadingAppointments] = useState(false);
 
 
 
@@ -62,29 +65,45 @@ const PatientDashboard = () => {
     const [message, setMessage] = useState('');
 
     const fetchVisits = async () => {
-        setLoadingData(true);
+        setLoadingVisits(true);
         try {
             const res = await api.get('/visits/me');
             if (res.data.success) {
-                setVisits(res.data.data.visits);
+                setVisits(res.data.data.visits || []);
             }
         } catch (error) {
             console.error("Failed to fetch visits", error);
         }
-        setLoadingData(false);
+        setLoadingVisits(false);
     };
 
     const fetchPrescriptions = async () => {
-        setLoadingData(true);
+        setLoadingPrescriptions(true);
         try {
             const res = await api.get('/prescriptions/me');
             if (res.data.success) {
-                setPrescriptions(res.data.data.prescriptions);
+                setPrescriptions(res.data.data.prescriptions || []);
             }
         } catch (error) {
             console.error("Failed to fetch prescriptions", error);
         }
-        setLoadingData(false);
+        setLoadingPrescriptions(false);
+    };
+
+    const fetchAppointments = async () => {
+        setLoadingAppointments(true);
+        try {
+            const res = await api.get('/appointments/me');
+            if (res.data.success) {
+                // Return structure is { appointments, total } for /me endpoint
+                const data = res.data.data;
+                setAppointments(Array.isArray(data) ? data : (data?.appointments || []));
+            }
+        } catch (error) {
+            console.error("Failed to fetch appointments", error);
+            setAppointments([]);
+        }
+        setLoadingAppointments(false);
     };
 
 
@@ -240,6 +259,11 @@ const PatientDashboard = () => {
             fetchConsents();
         }
 
+        if (activeTab === 'overview') {
+            fetchVisits();
+            fetchAppointments();
+            fetchPrescriptions();
+        }
         if (activeTab === 'medical-history') {
             fetchVisits();
         }
@@ -273,6 +297,7 @@ const PatientDashboard = () => {
                         </div>
                     </Card>
                 );
+            case 'overview':
                 return (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
                         <Card>
@@ -316,16 +341,27 @@ const PatientDashboard = () => {
 
                         <Card>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                                <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(255, 59, 48, 0.1)', color: 'var(--danger)' }}>
-                                    <FileText size={24} />
+                                <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(255, 149, 0, 0.1)', color: 'var(--warning)' }}>
+                                    <Shield size={24} />
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Medical History</h3>
-                                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px' }}>View recent visits</p>
+                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Upcoming Appointments</h3>
+                                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px' }}>
+                                        {appointments.filter(a => a.status === 'Pending' || a.status === 'Confirmed' || a.status === 'scheduled').length} scheduled
+                                    </p>
                                 </div>
                             </div>
+                            {appointments.filter(a => a.status === 'Pending' || a.status === 'Confirmed' || a.status === 'scheduled').slice(0, 2).map(apt => (
+                                <div key={apt.id} style={{ padding: '8px', marginBottom: '8px', borderLeft: '3px solid var(--warning)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{new Date(apt.date).toLocaleDateString()}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                        Dr. {apt.doctor?.name || 'Doctor'} 
+                                        {apt.doctor?.specialization && <span style={{ opacity: 0.8, fontSize: '11px' }}> • {apt.doctor.specialization}</span>}
+                                    </div>
+                                </div>
+                            ))}
                             <Button variant="secondary" size="sm" onClick={() => setActiveTab('medical-history')} style={{ marginTop: '8px', width: '100%' }}>
-                                View History
+                                View All
                             </Button>
                         </Card>
                     </div>
@@ -628,7 +664,7 @@ const PatientDashboard = () => {
                         <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
                             <FileText size={24} style={{ marginRight: '10px', color: 'var(--accent)' }} /> Medical History
                         </h2>
-                        {loadingData ? (
+                        {loadingVisits ? (
                             <p>Loading visits...</p>
                         ) : visits.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
@@ -650,7 +686,8 @@ const PatientDashboard = () => {
                                                     {visit.visit_date}
                                                 </h4>
                                                 <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                                                    Dr. {visit.doctors?.name || 'Unknown'} ({visit.doctors?.specialization})
+                                                    Dr. {visit.doctors?.name || 'Doctor'}
+                                                    {visit.doctors?.specialization && <span style={{ opacity: 0.8, fontSize: '12px' }}> • {visit.doctors.specialization}</span>}
                                                 </span>
                                             </div>
                                             <span style={{ fontSize: '13px', padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,0,0,0.05)', height: 'fit-content' }}>
@@ -684,7 +721,7 @@ const PatientDashboard = () => {
                         <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
                             <Pill size={24} style={{ marginRight: '10px', color: 'var(--success)' }} /> Prescriptions
                         </h2>
-                        {loadingData ? (
+                        {loadingPrescriptions ? (
                             <p>Loading prescriptions...</p>
                         ) : prescriptions.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
@@ -707,7 +744,8 @@ const PatientDashboard = () => {
                                             <div>
                                                 <h4 style={{ margin: '0 0 2px 0', fontSize: '16px', fontWeight: 600 }}>{presc.medication_name}</h4>
                                                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                                    Dr. {presc.doctors?.name}
+                                                    Dr. {presc.doctors?.name || 'Doctor'}
+                                                    {presc.doctors?.specialization && <span style={{ opacity: 0.8, fontSize: '11px' }}> • {presc.doctors.specialization}</span>}
                                                 </span>
                                             </div>
                                         </div>

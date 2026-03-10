@@ -21,6 +21,10 @@ const NurseDashboard = () => {
     const [prescriptions, setPrescriptions] = useState([]);
     const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
 
+    // Appointments State
+    const [appointments, setAppointments] = useState([]);
+    const [loadingAppointments, setLoadingAppointments] = useState(false);
+
     const handleSearchPatients = async () => {
         setSearching(true);
         try {
@@ -48,7 +52,7 @@ const NurseDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery, activeTab]);
 
-    // Fetch Prescriptions when patient is selected
+    // Fetch Prescriptions and Appointments when patient is selected
     useEffect(() => {
         if (selectedPatient) {
             const fetchPrescriptions = async () => {
@@ -64,9 +68,27 @@ const NurseDashboard = () => {
                 }
                 setLoadingPrescriptions(false);
             };
+
+            const fetchAppointments = async () => {
+                setLoadingAppointments(true);
+                try {
+                    // Re-use doctor's endpoint for patient appointments or general patient endpoint
+                    const res = await api.get(`/appointments/patient/${selectedPatient.id}`);
+                    if (res.data.success) {
+                        setAppointments(res.data.data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch appointments:", error);
+                    setAppointments([]);
+                }
+                setLoadingAppointments(false);
+            };
+
             fetchPrescriptions();
+            fetchAppointments();
         } else {
             setPrescriptions([]);
+            setAppointments([]);
         }
     }, [selectedPatient]);
 
@@ -262,6 +284,63 @@ const NurseDashboard = () => {
                             ) : (
                                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px 0', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)' }}>
                                     No prescriptions found for this patient.
+                                </p>
+                            )}
+                        </Card>
+
+                        {/* Appointments Section (Read-Only) */}
+                        <Card>
+                            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Calendar size={20} style={{ color: 'var(--accent)' }} />
+                                Appointments
+                            </h3>
+                            
+                            {loadingAppointments ? (
+                                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '24px 0' }}>Loading appointments...</p>
+                            ) : appointments.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {appointments.map((apt) => (
+                                        <div key={apt.id} style={{
+                                            padding: '16px',
+                                            borderRadius: 'var(--radius-md)',
+                                            border: '1px solid var(--border)',
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                                                    {new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}
+                                                </div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                                    Doctor: {apt.doctor?.name || 'Unknown'}
+                                                </div>
+                                                {apt.reason && (
+                                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                        Reason: {apt.reason}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{
+                                                padding: '4px 10px',
+                                                borderRadius: 'var(--radius-full)',
+                                                backgroundColor: apt.status === 'scheduled' ? 'rgba(0, 122, 255, 0.1)' : 
+                                                                 apt.status === 'completed' ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)',
+                                                color: apt.status === 'scheduled' ? 'var(--accent)' : 
+                                                       apt.status === 'completed' ? 'var(--success)' : 'var(--danger)',
+                                                fontSize: '11px',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {apt.status}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px 0', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)' }}>
+                                    No appointments found for this patient.
                                 </p>
                             )}
                         </Card>
