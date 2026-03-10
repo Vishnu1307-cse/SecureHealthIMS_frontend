@@ -74,6 +74,11 @@ const RegisterForm = () => {
                 } else {
                     delete payload.department_id;
                 }
+            } else if (role === 'nurse') {
+                delete payload.specialization;
+                delete payload.department_id;
+                delete payload.date_of_birth;
+                delete payload.gender;
             }
 
             const res = await verifyRegister(payload);
@@ -81,6 +86,8 @@ const RegisterForm = () => {
             if (res.success) {
                 if (role === 'doctor') {
                     alert("Registration successful! Your account is pending admin approval.");
+                } else if (role === 'nurse') {
+                    alert("Registration successful! Please login.");
                 } else {
                     alert("Registration successful! Please login.");
                 }
@@ -159,7 +166,7 @@ const RegisterForm = () => {
                     Register as a:
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    {['patient', 'doctor'].map((r) => (
+                    {['patient', 'doctor', 'nurse'].map((r) => (
                         <button
                             key={r}
                             type="button"
