@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { User, LayoutDashboard, Stethoscope } from 'lucide-react';
+import AuditLogs from '../../components/audit/AuditLogs';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -137,6 +138,7 @@ const AdminDashboard = () => {
         { id: 'doctors', label: 'Doctors', content: <DoctorTabContent /> },
         { id: 'patients', label: 'Patients', content: <UserList list={patients} showActions={true} /> },
         { id: 'nurses', label: 'Nurses', content: <UserList list={nurses} showActions={true} /> },
+        { id: 'audit-logs', label: 'Audit Logs', content: <AuditLogs isAdmin={true} /> },
     ];
 
     if (loading) return <div style={{ padding: '24px' }}>Loading...</div>;

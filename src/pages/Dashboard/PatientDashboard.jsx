@@ -9,6 +9,7 @@ import { User, Edit2, Save, X, Shield, Check, AlertCircle, FileText, Pill } from
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from 'framer-motion';
 import PatientRegistrationModal from '../../components/patient/PatientRegistrationModal';
+import AuditLogs from '../../components/audit/AuditLogs';
 
 const PatientDashboard = () => {
     const { user, updateProfile } = useAuth();
@@ -716,6 +717,9 @@ const PatientDashboard = () => {
                     </Card>
                 );
 
+            case 'audit-logs':
+                return <AuditLogs />;
+
             default:
                 return null;
         }
@@ -758,7 +762,7 @@ const PatientDashboard = () => {
                     width: 'fit-content',
                     backdropFilter: 'blur(20px)'
                 }}>
-                    {['overview', 'medical-history', 'prescriptions', 'profile', 'privacy'].map(tab => (
+                    {['overview', 'medical-history', 'prescriptions', 'profile', 'privacy', 'audit-logs'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
