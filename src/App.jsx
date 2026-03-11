@@ -9,6 +9,7 @@ import DoctorDashboard from './pages/Dashboard/DoctorDashboard';
 import NurseDashboard from './pages/Dashboard/NurseDashboard';
 import Navbar from './components/layout/Navbar';
 import CustomCursor from './components/common/CustomCursor';
+import ChatBot from './components/chatbot/ChatBot';
 
 // Placeholder Home/Patient Dashboard
 const Home = () => {
@@ -71,6 +72,7 @@ function App() {
           }
         />
       </Routes>
+      <ChatBot />
     </Router>
   );
 }

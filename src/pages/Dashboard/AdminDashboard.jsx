@@ -14,6 +14,8 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [auditLoading, setAuditLoading] = useState(true);
     const [securityAssumptions, setSecurityAssumptions] = useState(null);
     const [loadingSecurity, setLoadingSecurity] = useState(false);
 
@@ -31,8 +33,22 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchAuditLogs = async () => {
+        try {
+            const res = await api.get('/audit/all');
+            if (res.data.success) {
+                setAuditLogs(res.data.data.logs);
+            }
+        } catch (err) {
+            console.error('Failed to fetch audit logs', err);
+        } finally {
+            setAuditLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchUsers();
+        fetchAuditLogs();
     }, []);
 
     const fetchSecurityAssumptions = async () => {
@@ -103,7 +119,7 @@ const AdminDashboard = () => {
         <div style={{ display: 'grid', gap: '16px' }}>
             {list.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No users found.</p>}
             {list.map(user => (
-                <Card key={user.id} padding="16px" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Card key={user.id} padding="16px" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="user-card-content">
                     <div>
                         <h4 style={{ fontSize: '16px', fontWeight: 600 }}>{user.name} ({user.email})</h4>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
@@ -138,7 +154,7 @@ const AdminDashboard = () => {
                         )}
                     </div>
                     {showActions && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }} className="user-actions">
                             {/* Doctor Approval (Only for unverified doctors) */}
                             {user.role === 'doctor' && !user.verified && (
                                 <Button size="sm" onClick={() => handleApprove(user.id)}>Approve</Button>
@@ -159,6 +175,19 @@ const AdminDashboard = () => {
                     )}
                 </Card>
             ))}
+            <style>{`
+                @media (max-width: 768px) {
+                    .user-card-content {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 16px !important;
+                    }
+                    .user-actions {
+                        width: 100% !important;
+                        justify-content: flex-start !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 
@@ -175,6 +204,51 @@ const AdminDashboard = () => {
         </div>
     );
 
+    const AuditLogsTab = () => (
+        <div style={{ display: 'grid', gap: '16px' }}>
+            {auditLoading ? (
+                <p style={{ color: 'var(--text-secondary)' }}>Loading system logs...</p>
+            ) : auditLogs.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)' }}>No audit logs found.</p>
+            ) : (
+                auditLogs.map(log => (
+                    <Card key={log.id} padding="16px">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <span style={{
+                                        padding: '4px 12px',
+                                        borderRadius: '12px',
+                                        fontSize: '12px',
+                                        fontWeight: 700,
+                                        backgroundColor: log.status === 'success' ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)',
+                                        color: log.status === 'success' ? 'var(--success)' : 'var(--danger)',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px'
+                                    }}>
+                                        {log.action}
+                                    </span>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>IP: {log.ip_address}</span>
+                                </div>
+                                <p style={{ fontSize: '14px', marginBottom: '4px' }}>
+                                    <strong style={{ color: 'var(--text-secondary)' }}>Actor ({log.actor_role}):</strong> {log.actor_id}
+                                </p>
+                                <p style={{ fontSize: '14px' }}>
+                                    <strong style={{ color: 'var(--text-secondary)' }}>Resource:</strong> {log.resource} {log.resource_id ? `(${log.resource_id})` : ''}
+                                </p>
+                            </div>
+                            <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                {new Date(log.created_at).toLocaleString()}
+                            </div>
+                        </div>
+                        {log.details && (
+                            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', fontSize: '12px', fontFamily: 'monospace', overflowX: 'auto' }}>
+                                {JSON.stringify(log.details)}
+                            </div>
+                        )}
+                    </Card>
+                ))
+            )}
     const SecurityTab = () => (
         <div>
             <div style={{ marginBottom: '24px' }}>
@@ -214,6 +288,7 @@ const AdminDashboard = () => {
         { id: 'doctors', label: 'Doctors', content: <DoctorTabContent /> },
         { id: 'patients', label: 'Patients', content: <UserList list={patients} showActions={true} /> },
         { id: 'nurses', label: 'Nurses', content: <UserList list={nurses} showActions={true} /> },
+        { id: 'audit', label: 'System Logs', content: <AuditLogsTab /> },
         { id: 'audit-logs', label: 'Audit Logs', content: <AuditLogs isAdmin={true} /> },
         { id: 'incident-logs', label: 'Incident Logs', content: <IncidentLogs /> },
         { id: 'security', label: 'Security', content: <SecurityTab /> },
@@ -248,7 +323,7 @@ const AdminDashboard = () => {
                     }}>
                         Administrative Control
                     </div>
-                    <h1 className="title-font" style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
+                    <h1 className="title-font dashboard-title" style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
                         System Overview
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
@@ -303,6 +378,19 @@ const AdminDashboard = () => {
 
                 <Tabs tabs={tabs} />
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .dashboard-title {
+                        fontSize: 2.2rem !important;
+                    }
+                    div[style*="padding: 40px 24px"] {
+                        padding: 24px 16px !important;
+                    }
+                    div[style*="margin-bottom: 48px"] {
+                        margin-bottom: 24px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

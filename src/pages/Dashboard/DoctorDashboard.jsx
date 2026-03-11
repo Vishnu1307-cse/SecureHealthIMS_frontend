@@ -34,6 +34,7 @@ const DoctorDashboard = () => {
 
     const [visitForm, setVisitForm] = useState({
         visit_date: new Date().toISOString().split('T')[0],
+        chief_complaint: '',
         diagnosis: '',
         notes: ''
     });
@@ -60,6 +61,31 @@ const DoctorDashboard = () => {
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+
+    // Appointment action state
+    const [decliningId, setDecliningId] = useState(null);
+    const [declineReason, setDeclineReason] = useState('');
+    const [aptActionLoading, setAptActionLoading] = useState(null);
+
+    const handleAppointmentAction = async (appointmentId, status, reason) => {
+        setAptActionLoading(appointmentId + status);
+        try {
+            const body = { status };
+            if (status === 'Cancelled') body.decline_reason = reason;
+            await api.patch(`/appointments/${appointmentId}/status`, body);
+            setMessage(status === 'Confirmed' ? 'Appointment accepted.' :
+                status === 'Cancelled' ? 'Appointment declined.' :
+                status === 'Completed' ? 'Marked as Visited.' : 'Marked as No-Show.');
+            setDecliningId(null);
+            setDeclineReason('');
+            fetchAppointments();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (err) {
+            setMessage(err.response?.data?.message || 'Action failed.');
+            setTimeout(() => setMessage(''), 4000);
+        }
+        setAptActionLoading(null);
+    };
 
     const fetchAppointments = async () => {
         setLoadingData(true);
@@ -94,10 +120,21 @@ const DoctorDashboard = () => {
 
     useEffect(() => {
         if (activeTab === 'appointments' || activeTab === 'overview') {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             fetchAppointments();
         }
     }, [activeTab]);
+
+    // Listen for chatbot navigation events
+    useEffect(() => {
+        const handleChatbotTab = (e) => {
+            const validTabs = ['overview', 'appointments', 'patients', 'profile'];
+            if (e.detail?.tab && validTabs.includes(e.detail.tab)) {
+                setActiveTab(e.detail.tab);
+            }
+        };
+        window.addEventListener('chatbot-set-tab', handleChatbotTab);
+        return () => window.removeEventListener('chatbot-set-tab', handleChatbotTab);
+    }, []);
 
     // Search Debounce
     useEffect(() => {
@@ -110,7 +147,7 @@ const DoctorDashboard = () => {
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery, activeTab]);
 
     // Fetch Selected Patient History
@@ -172,6 +209,7 @@ const DoctorDashboard = () => {
                 setShowVisitForm(false);
                 setVisitForm({
                     visit_date: new Date().toISOString().split('T')[0],
+                    chief_complaint: '',
                     diagnosis: '',
                     notes: ''
                 });
@@ -210,7 +248,7 @@ const DoctorDashboard = () => {
 
     const renderPatientsTab = () => {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: selectedPatient ? '1fr 2fr' : '1fr', gap: '24px', transition: 'all 0.3s ease' }}>
+            <div className="doctor-patient-grid" style={{ display: 'grid', gridTemplateColumns: selectedPatient ? '1fr 2fr' : '1fr', gap: '24px', transition: 'all 0.3s ease' }}>
                 {/* Search Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <Card>
@@ -302,15 +340,16 @@ const DoctorDashboard = () => {
                                     <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>New Visit Record</h4>
                                     <form onSubmit={handleCreateVisit} style={{ display: 'grid', gap: '16px' }}>
                                         <Input type="date" label="Date" value={visitForm.visit_date} onChange={(e) => setVisitForm({ ...visitForm, visit_date: e.target.value })} required />
+                                        <Input label="Chief Complaint" value={visitForm.chief_complaint} onChange={(e) => setVisitForm({ ...visitForm, chief_complaint: e.target.value })} placeholder="e.g. Chest pain, shortness of breath" />
                                         <Input label="Diagnosis" value={visitForm.diagnosis} onChange={(e) => setVisitForm({ ...visitForm, diagnosis: e.target.value })} placeholder="e.g. Acute Bronchitis" required />
-                                        <div>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>Clinical Notes</label>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-blue-200">Notes / Findings</label>
                                             <textarea
+                                                className="w-full h-32 px-4 py-2 bg-blue-900/40 border border-blue-400/30 rounded-xl text-white placeholder-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm"
+                                                placeholder="Enter clinical notes here..."
                                                 value={visitForm.notes}
                                                 onChange={(e) => setVisitForm({ ...visitForm, notes: e.target.value })}
-                                                style={{ width: '100%', minHeight: '100px', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontFamily: 'inherit' }}
-                                                placeholder="Patient complaints, observations, etc."
-                                            />
+                                            ></textarea>
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <Button type="button" variant="secondary" onClick={() => setShowVisitForm(false)}>Cancel</Button>
@@ -476,44 +515,146 @@ const DoctorDashboard = () => {
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {appointments.map(apt => (
-                                    <div key={apt.id} style={{
-                                        padding: '16px',
-                                        backgroundColor: 'var(--bg-secondary)',
+                                {message && (
+                                    <div style={{
+                                        padding: '12px',
                                         borderRadius: 'var(--radius-md)',
-                                        borderLeft: `4px solid ${apt.status === 'Confirmed' ? 'var(--success)' :
-                                            apt.status === 'Pending' ? 'var(--warning)' :
-                                                apt.status === 'Cancelled' ? 'var(--danger)' : 'var(--text-secondary)'
-                                            }`
+                                        backgroundColor: message.includes('failed') || message.includes('Failed') ? 'rgba(255,59,48,0.1)' : 'rgba(52,199,89,0.1)',
+                                        color: message.includes('failed') || message.includes('Failed') ? 'var(--danger)' : 'var(--success)',
+                                        fontSize: '14px'
                                     }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                            <h4 style={{ margin: 0, fontWeight: 600 }}>{apt.users?.name || 'Patient'}</h4>
-                                            <span style={{
-                                                fontSize: '12px',
-                                                fontWeight: 600,
-                                                padding: '4px 8px',
-                                                borderRadius: '12px',
-                                                backgroundColor: 'var(--bg-primary)',
-                                                textTransform: 'uppercase'
-                                            }}>
-                                                {apt.status}
-                                            </span>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Calendar size={14} /> {apt.date}
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Clock size={14} /> {apt.time}
-                                            </div>
-                                        </div>
-                                        {apt.reason && (
-                                            <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
-                                                <span style={{ fontWeight: 500 }}>Reason:</span> {apt.reason}
-                                            </p>
-                                        )}
+                                        {message}
                                     </div>
-                                ))}
+                                )}
+                                {appointments.map(apt => {
+                                    const now = new Date();
+                                    const aptDateTime = new Date(`${apt.date}T${apt.time}`);
+                                    const isTimeReached = now >= aptDateTime;
+                                    const statusColor = apt.status === 'Confirmed' ? 'var(--success)' :
+                                        apt.status === 'Pending' ? 'var(--warning)' :
+                                        apt.status === 'Completed' ? 'var(--accent)' :
+                                        apt.status === 'No-Show' ? 'var(--text-secondary)' :
+                                        'var(--danger)';
+                                    return (
+                                        <div key={apt.id} style={{
+                                            padding: '16px',
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            borderRadius: 'var(--radius-md)',
+                                            borderLeft: `4px solid ${statusColor}`
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                <h4 style={{ margin: 0, fontWeight: 600 }}>{apt.users?.name || apt.patient_name || 'Patient'}</h4>
+                                                <span style={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    padding: '4px 8px',
+                                                    borderRadius: '12px',
+                                                    backgroundColor: `${statusColor}20`,
+                                                    color: statusColor,
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {apt.status === 'No-Show' ? 'No Show' : apt.status}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Calendar size={14} /> {apt.date}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Clock size={14} /> {apt.time}
+                                                </div>
+                                            </div>
+                                            {apt.reason && (
+                                                <p style={{ margin: '4px 0 8px 0', fontSize: '14px' }}>
+                                                    <span style={{ fontWeight: 500 }}>Reason:</span> {apt.reason}
+                                                </p>
+                                            )}
+
+                                            {/* Accept / Decline for Pending appointments */}
+                                            {apt.status === 'Pending' && (
+                                                <div style={{ marginTop: '12px' }}>
+                                                    {decliningId === apt.id ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                            <textarea
+                                                                placeholder="Reason for declining (required)"
+                                                                value={declineReason}
+                                                                onChange={(e) => setDeclineReason(e.target.value)}
+                                                                rows={2}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    padding: '8px 12px',
+                                                                    borderRadius: 'var(--radius-md)',
+                                                                    border: '1px solid var(--border)',
+                                                                    backgroundColor: 'var(--bg-primary)',
+                                                                    color: 'var(--text-primary)',
+                                                                    fontSize: '14px',
+                                                                    resize: 'vertical',
+                                                                    boxSizing: 'border-box'
+                                                                }}
+                                                            />
+                                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="danger"
+                                                                    disabled={!declineReason.trim() || aptActionLoading === apt.id + 'Cancelled'}
+                                                                    onClick={() => handleAppointmentAction(apt.id, 'Cancelled', declineReason)}
+                                                                >
+                                                                    {aptActionLoading === apt.id + 'Cancelled' ? 'Declining...' : 'Confirm Decline'}
+                                                                </Button>
+                                                                <Button size="sm" variant="secondary" onClick={() => { setDecliningId(null); setDeclineReason(''); }}>Cancel</Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <Button
+                                                                size="sm"
+                                                                disabled={aptActionLoading === apt.id + 'Confirmed'}
+                                                                onClick={() => handleAppointmentAction(apt.id, 'Confirmed')}
+                                                            >
+                                                                {aptActionLoading === apt.id + 'Confirmed' ? 'Accepting...' : '✓ Accept'}
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="danger"
+                                                                onClick={() => setDecliningId(apt.id)}
+                                                            >
+                                                                ✕ Decline
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Mark Visited / No-Show — only shown after appointment date+time */}
+                                            {apt.status === 'Confirmed' && isTimeReached && (
+                                                <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                                                    <Button
+                                                        size="sm"
+                                                        disabled={aptActionLoading === apt.id + 'Completed'}
+                                                        onClick={() => handleAppointmentAction(apt.id, 'Completed')}
+                                                        style={{ backgroundColor: 'var(--success)', color: '#fff' }}
+                                                    >
+                                                        {aptActionLoading === apt.id + 'Completed' ? 'Saving...' : '✓ Patient Visited'}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        disabled={aptActionLoading === apt.id + 'No-Show'}
+                                                        onClick={() => handleAppointmentAction(apt.id, 'No-Show')}
+                                                    >
+                                                        {aptActionLoading === apt.id + 'No-Show' ? 'Saving...' : '✗ No Show'}
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {apt.status === 'Confirmed' && !isTimeReached && (
+                                                <p style={{ margin: '10px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                                    ⏳ Visit actions available after {apt.date} at {apt.time}
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </Card>
@@ -657,13 +798,13 @@ const DoctorDashboard = () => {
                     }}>
                         Doctor Portal
                     </div>
-                    <h1 className="title-font" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
+                    <h1 className="title-font dashboard-title" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
                         Welcome back, <span style={{ color: 'var(--primary)' }}>Dr. {user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</span>
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Manage your appointments, patient records, and professional schedule.</p>
                 </header>
 
-                <div style={{
+                <div className="tab-navigation" style={{
                     display: 'flex',
                     gap: '12px',
                     marginBottom: '40px',
@@ -673,7 +814,9 @@ const DoctorDashboard = () => {
                     borderRadius: 'var(--radius-full)',
                     border: '1px solid var(--glass-stroke)',
                     width: 'fit-content',
-                    backdropFilter: 'blur(20px)'
+                    backdropFilter: 'blur(20px)',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
                 }}>
                     {['overview', 'appointments', 'patients', 'profile'].map(tab => (
                         <button
@@ -711,6 +854,33 @@ const DoctorDashboard = () => {
                     </motion.div>
                 </AnimatePresence>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .dashboard-title {
+                        font-size: 2.2rem !important;
+                        letter-spacing: -1px !important;
+                    }
+                    div[style*="padding: 48px 24px"] {
+                        padding: 24px 16px !important;
+                    }
+                    .tab-navigation {
+                        width: 100% !important;
+                        border-radius: 16px !important;
+                        padding: 12px 0 !important;
+                    }
+                    .tab-navigation::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .doctor-patient-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 16px !important;
+                    }
+                    .header-actions {
+                        flex-direction: column !important;
+                        gap: 12px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
