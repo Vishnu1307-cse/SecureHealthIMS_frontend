@@ -63,10 +63,17 @@ const ChatBot = () => {
     if (!user) return null;
 
     // Simple markdown-to-HTML renderer
+    const escapeHtml = (str) =>
+        str.replace(/&/g, '&amp;')
+           .replace(/</g, '&lt;')
+           .replace(/>/g, '&gt;')
+           .replace(/"/g, '&quot;')
+           .replace(/'/g, '&#39;');
+
     const renderMarkdown = (text) => {
         if (!text) return '';
 
-        let html = text
+        let html = escapeHtml(text)
             // Bold
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             // Italic
