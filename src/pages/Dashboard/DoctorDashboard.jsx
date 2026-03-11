@@ -216,7 +216,7 @@ const DoctorDashboard = () => {
 
     const renderPatientsTab = () => {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: selectedPatient ? '1fr 2fr' : '1fr', gap: '24px', transition: 'all 0.3s ease' }}>
+            <div className="doctor-patient-grid" style={{ display: 'grid', gridTemplateColumns: selectedPatient ? '1fr 2fr' : '1fr', gap: '24px', transition: 'all 0.3s ease' }}>
                 {/* Search Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <Card>
@@ -724,13 +724,13 @@ const DoctorDashboard = () => {
                     }}>
                         Doctor Portal
                     </div>
-                    <h1 className="title-font" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
+                    <h1 className="title-font dashboard-title" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
                         Welcome back, <span style={{ color: 'var(--primary)' }}>Dr. {user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</span>
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Manage your appointments, patient records, and professional schedule.</p>
                 </header>
 
-                <div style={{
+                <div className="tab-navigation" style={{
                     display: 'flex',
                     gap: '12px',
                     marginBottom: '40px',
@@ -740,7 +740,9 @@ const DoctorDashboard = () => {
                     borderRadius: 'var(--radius-full)',
                     border: '1px solid var(--glass-stroke)',
                     width: 'fit-content',
-                    backdropFilter: 'blur(20px)'
+                    backdropFilter: 'blur(20px)',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
                 }}>
                     {['overview', 'appointments', 'patients', 'profile'].map(tab => (
                         <button
@@ -778,6 +780,33 @@ const DoctorDashboard = () => {
                     </motion.div>
                 </AnimatePresence>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .dashboard-title {
+                        font-size: 2.2rem !important;
+                        letter-spacing: -1px !important;
+                    }
+                    div[style*="padding: 48px 24px"] {
+                        padding: 24px 16px !important;
+                    }
+                    .tab-navigation {
+                        width: 100% !important;
+                        border-radius: 16px !important;
+                        padding: 12px 0 !important;
+                    }
+                    .tab-navigation::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .doctor-patient-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 16px !important;
+                    }
+                    .header-actions {
+                        flex-direction: column !important;
+                        gap: 12px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         <div style={{ display: 'grid', gap: '16px' }}>
             {list.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No users found.</p>}
             {list.map(user => (
-                <Card key={user.id} padding="16px" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Card key={user.id} padding="16px" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="user-card-content">
                     <div>
                         <h4 style={{ fontSize: '16px', fontWeight: 600 }}>{user.name} ({user.email})</h4>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
@@ -117,7 +117,7 @@ const AdminDashboard = () => {
                         )}
                     </div>
                     {showActions && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }} className="user-actions">
                             {/* Doctor Approval (Only for unverified doctors) */}
                             {user.role === 'doctor' && !user.verified && (
                                 <Button size="sm" onClick={() => handleApprove(user.id)}>Approve</Button>
@@ -133,6 +133,19 @@ const AdminDashboard = () => {
                     )}
                 </Card>
             ))}
+            <style>{`
+                @media (max-width: 768px) {
+                    .user-card-content {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 16px !important;
+                    }
+                    .user-actions {
+                        width: 100% !important;
+                        justify-content: flex-start !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 
@@ -233,7 +246,7 @@ const AdminDashboard = () => {
                     }}>
                         Administrative Control
                     </div>
-                    <h1 className="title-font" style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
+                    <h1 className="title-font dashboard-title" style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
                         System Overview
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
@@ -288,6 +301,19 @@ const AdminDashboard = () => {
 
                 <Tabs tabs={tabs} />
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .dashboard-title {
+                        fontSize: 2.2rem !important;
+                    }
+                    div[style*="padding: 40px 24px"] {
+                        padding: 24px 16px !important;
+                    }
+                    div[style*="margin-bottom: 48px"] {
+                        margin-bottom: 24px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

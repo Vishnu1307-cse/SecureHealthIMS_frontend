@@ -35,7 +35,7 @@ const LoginPage = () => {
                         >
                             Welcome Back
                         </div>
-                        <h1 className="title-font text-shimmer text-reveal" style={{
+                        <h1 className="title-font text-shimmer text-reveal main-title" style={{
                             fontSize: '4.5rem',
                             fontWeight: 900,
                             marginBottom: '16px',
@@ -66,6 +66,22 @@ const LoginPage = () => {
                     </p>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .main-title {
+                        fontSize: 2.5rem !important;
+                        letter-spacing: -1px !important;
+                    }
+                    div[style*="min-height: calc(100vh - 100px)"] {
+                        min-height: auto !important;
+                        padding-top: 40px !important;
+                        padding-bottom: 40px !important;
+                    }
+                    div[style*="margin-bottom: 48px"] {
+                        margin-bottom: 32px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

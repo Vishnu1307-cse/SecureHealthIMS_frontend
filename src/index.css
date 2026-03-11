@@ -60,8 +60,18 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  cursor: none !important;
   /* Force custom cursor */
+}
+
+/* Hide custom cursor on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    cursor: auto !important;
+  }
+  #custom-cursor,
+  #custom-cursor-follower {
+    display: none !important;
+  }
 }
 
 body {
@@ -253,4 +263,29 @@ button {
 
 button:active {
   transform: scale(0.95);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  :root {
+    --radius-lg: 20px;
+    --blur: 10px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .title-font {
+    letter-spacing: -0.01em;
+  }
+
+  .glass-panel {
+    padding: 16px !important;
+  }
+
+  /* Adjust grid layouts globally if they use specific column counts */
+  .grid-mobile-1 {
+    grid-template-columns: 1fr !important;
+  }
 }

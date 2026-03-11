@@ -334,10 +334,10 @@ const PatientDashboard = () => {
         switch (activeTab) {
             case 'overview':
                 return (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-                        <Card>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }} className="patient-grid">
+                        <Card className="full-width-mobile">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                                <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(0, 122, 255, 0.1)', color: 'var(--accent)' }}>
+                                <div className="icon-rounded" style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(0, 122, 255, 0.1)', color: 'var(--accent)' }}>
                                     <User size={24} />
                                 </div>
                                 <div>
@@ -353,9 +353,9 @@ const PatientDashboard = () => {
                             </div>
                         </Card>
 
-                        <Card>
+                        <Card className="full-width-mobile">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                                <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(52, 199, 89, 0.1)', color: 'var(--success)' }}>
+                                <div className="icon-rounded" style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(52, 199, 89, 0.1)', color: 'var(--success)' }}>
                                     <Shield size={24} />
                                 </div>
                                 <div>
@@ -1016,7 +1016,7 @@ const PatientDashboard = () => {
     return (
         <div style={{ minHeight: '100vh', position: 'relative' }}>
             <Navbar />
-            <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', padding: '48px 24px' }}>
+            <div className="animate-fade-in dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '48px 24px' }}>
                 <header style={{ marginBottom: '48px' }}>
                     <div style={{
                         display: 'inline-block',
@@ -1032,13 +1032,13 @@ const PatientDashboard = () => {
                     }}>
                         Patient Portal
                     </div>
-                    <h1 className="title-font" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
+                    <h1 className="title-font dashboard-title" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
                         Welcome back, <span style={{ color: 'var(--primary)' }}>{user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</span>
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Manage your health profile, consultation history, and privacy settings.</p>
                 </header>
 
-                <div style={{
+                <div className="tab-navigation" style={{
                     display: 'flex',
                     gap: '12px',
                     marginBottom: '40px',
@@ -1048,7 +1048,9 @@ const PatientDashboard = () => {
                     borderRadius: 'var(--radius-full)',
                     border: '1px solid var(--glass-stroke)',
                     width: 'fit-content',
-                    backdropFilter: 'blur(20px)'
+                    backdropFilter: 'blur(20px)',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
                 }}>
                     {['overview', 'medical-history', 'prescriptions', 'appointments', 'profile', 'privacy', 'audit', 'book-appointment'].map(tab => (
                         <button
@@ -1065,7 +1067,8 @@ const PatientDashboard = () => {
                                 cursor: 'none',
                                 transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
                                 textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
+                                letterSpacing: '0.5px',
+                                whiteSpace: 'nowrap'
                             }}
                             className="hover-scale"
                         >
@@ -1086,6 +1089,32 @@ const PatientDashboard = () => {
                     </motion.div>
                 </AnimatePresence>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .dashboard-title {
+                        font-size: 2.2rem !important;
+                        letter-spacing: -1px !important;
+                    }
+                    .dashboard-container {
+                        padding: 24px 16px !important;
+                    }
+                    .tab-navigation {
+                        width: 100% !important;
+                        border-radius: 16px !important;
+                        padding: 12px 0 !important;
+                    }
+                    .tab-navigation::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .patient-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 16px !important;
+                    }
+                    .full-width-mobile {
+                        width: 100% !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
