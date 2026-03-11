@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import PatientDashboard from './pages/Dashboard/PatientDashboard';
 import DoctorDashboard from './pages/Dashboard/DoctorDashboard';
+import NurseDashboard from './pages/Dashboard/NurseDashboard';
 import Navbar from './components/layout/Navbar';
 import CustomCursor from './components/common/CustomCursor';
 import ChatBot from './components/chatbot/ChatBot';
@@ -20,6 +21,7 @@ const Home = () => {
   if (user.role === 'admin') return <Navigate to="/admin" />;
   if (user.role === 'patient') return <PatientDashboard />;
   if (user.role === 'doctor') return <DoctorDashboard />;
+  if (user.role === 'nurse') return <NurseDashboard />;
 
   // Default fallback for doctor or other roles if not yet implemented
   return (
