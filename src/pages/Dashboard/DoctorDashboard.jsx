@@ -71,6 +71,11 @@ const DoctorDashboard = () => {
     const [declineReason, setDeclineReason] = useState('');
     const [aptActionLoading, setAptActionLoading] = useState(null);
 
+    const doctorFirstName = (() => {
+        const cleanedName = (user?.name || '').trim().replace(/^dr\.?\s+/i, '');
+        return cleanedName.split(' ')[0] || user?.email?.split('@')[0] || 'User';
+    })();
+
     const handleAppointmentAction = async (appointmentId, status, reason) => {
         setAptActionLoading(appointmentId + status);
         try {
@@ -803,7 +808,7 @@ const DoctorDashboard = () => {
                         Doctor Portal
                     </div>
                     <h1 className="title-font dashboard-title" style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '12px', letterSpacing: '-1.5px' }}>
-                        Welcome back, <span style={{ color: 'var(--primary)' }}>Dr. {user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</span>
+                        Welcome back, <span style={{ color: 'var(--primary)' }}>Dr. {doctorFirstName}</span>
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Manage your appointments, patient records, and professional schedule.</p>
                 </header>
